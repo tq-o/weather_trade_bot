@@ -8,9 +8,6 @@ import { Header } from "./Header"
 import InputBox  from "./InputBox"
 import React from "react"
 
-const LAMBDA_URL =
-  "https://x2rdbaxphlsfdxftl5u5pzspa40domrl.lambda-url.us-west-2.on.aws/";
-
 export type ChatMessage = {
   id: string;
   role: "user" | "bot";
@@ -22,54 +19,51 @@ export default function Chat() {
     { id: "welcome", role: "bot", text: "Hi! Ask me about upcoming weather trends 🌦️" },
   ]);
 
-  const handleSend = async (text: string) => {
+  const handleSend = async ({
+    text,
+    optionValue,
+    optionLabel,
+  }: { text: string; optionValue: string; optionLabel: string }) => {
     const clean = text.trim();
-    if (!clean) return;
+    if (!clean || !optionValue) return;
 
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: clean };
+    // ✅ Show full state name in the user bubble
+    const userMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      text: `Career: ${clean} \nLocation: ${optionLabel}`, // full name here
+    };
     setMessages((m) => [...m, userMsg]);
 
-    // loading when waiting for gpt response
     const loadingId = crypto.randomUUID();
-    setMessages((m) => [
-      ...m,
-      { id: loadingId, role: "bot", text: "typing..." },
-    ]);
+    setMessages((m) => [...m, { id: loadingId, role: "bot", text: "typing..." }]);
 
     try {
       const res = await fetch("/api", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ city: clean }),
+        // ✅ Send the abbreviation to the API
+        body: JSON.stringify({ city: clean, metric: optionValue }),
+        // Consider renaming keys to { career: clean, state: optionValue } if that's what your API expects.
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      // Be flexible: the Lambda might return JSON or plain text.
-      const isJson =
-        res.headers.get("content-type")?.includes("application/json") ?? false;
+      const isJson = res.headers.get("content-type")?.includes("application/json") ?? false;
 
       let replyText: string;
       if (isJson) {
         const data: unknown = await res.json();
-        // If you know the exact type, narrow here:
-        // const data = (await res.json()) as ApiResponse;
-        // Example formatting; change to match your payload:
         replyText =
           typeof (data as any).res === "string"
-            ? (data as any).res
+            ? (data as any).res.replace(/\n{3,}/g, "\n\n").trim()
             : JSON.stringify(data, null, 2);
       } else {
-        replyText = await res.text();
+        replyText = (await res.text()).replace(/\n{3,}/g, "\n\n").trim();
       }
 
-      // replace the typing placeholder with the real response
       setMessages((m) =>
-        m.map((msg) =>
-          msg.id === loadingId ? { ...msg, text: replyText } : msg
-        )
+        m.map((msg) => (msg.id === loadingId ? { ...msg, text: replyText } : msg))
       );
     } catch (err) {
       console.error(err);
@@ -87,6 +81,7 @@ export default function Chat() {
     <div className="h-screen w-screen flex flex-col text-white">
       <Header />
       <Conversation messages={messages} />
+      {/* pass the new handler */}
       <InputBox onSend={handleSend} />
     </div>
   );
