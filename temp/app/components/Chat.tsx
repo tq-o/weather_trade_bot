@@ -1,0 +1,93 @@
+'use client';
+
+import { useState } from "react";
+import { Box } from "@mui/material"
+// import { Conversation } from "./Conversation"
+import Conversation from "./Conversation"
+import { Header } from "./Header"
+import InputBox  from "./InputBox"
+import React from "react"
+
+const LAMBDA_URL =
+  "https://x2rdbaxphlsfdxftl5u5pzspa40domrl.lambda-url.us-west-2.on.aws/";
+
+export type ChatMessage = {
+  id: string;
+  role: "user" | "bot";
+  text: string;
+};
+
+export default function Chat() {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: "welcome", role: "bot", text: "Hi! Ask me about upcoming weather trends 🌦️" },
+  ]);
+
+  const handleSend = async (text: string) => {
+    const clean = text.trim();
+    if (!clean) return;
+
+    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: clean };
+    setMessages((m) => [...m, userMsg]);
+
+    // loading when waiting for gpt response
+    const loadingId = crypto.randomUUID();
+    setMessages((m) => [
+      ...m,
+      { id: loadingId, role: "bot", text: "typing..." },
+    ]);
+
+    try {
+      const res = await fetch("/api", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ city: clean }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      // Be flexible: the Lambda might return JSON or plain text.
+      const isJson =
+        res.headers.get("content-type")?.includes("application/json") ?? false;
+
+      let replyText: string;
+      if (isJson) {
+        const data: unknown = await res.json();
+        // If you know the exact type, narrow here:
+        // const data = (await res.json()) as ApiResponse;
+        // Example formatting; change to match your payload:
+        replyText =
+          typeof (data as any).res === "string"
+            ? (data as any).res
+            : JSON.stringify(data, null, 2);
+      } else {
+        replyText = await res.text();
+      }
+
+      // replace the typing placeholder with the real response
+      setMessages((m) =>
+        m.map((msg) =>
+          msg.id === loadingId ? { ...msg, text: replyText } : msg
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      setMessages((m) =>
+        m.map((msg) =>
+          msg.id === loadingId
+            ? { ...msg, text: "⚠️ Sorry, I couldn’t reach the service." }
+            : msg
+        )
+      );
+    }
+  };
+
+  return (
+    <div className="h-screen w-screen flex flex-col text-white">
+      <Header />
+      <Conversation messages={messages} />
+      <InputBox onSend={handleSend} />
+    </div>
+  );
+}
