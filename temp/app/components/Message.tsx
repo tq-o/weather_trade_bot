@@ -57,11 +57,9 @@ export default function Message({ msg }: { msg: ChatMessage }) {
     <div className={`w-full flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap
-        ${isUser ? "bg-[#00FF99] text-black" : "bg-[#1E2A47] text-white"}`}
+        ${isUser ? "bg-[#95D5B2] text-[#081C15]" : "bg-[#40916C] text-white"}`}
       >
-        {isUser ? (
-          msg.text
-        ) : (
+          {/* Render Markdown for both user and bot so user can send bold labels */}
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -78,7 +76,6 @@ export default function Message({ msg }: { msg: ChatMessage }) {
           >
             {msg.text}
           </ReactMarkdown>
-        )}
       </div>
     </div>
   );

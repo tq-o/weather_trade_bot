@@ -49,42 +49,46 @@ export default function InputBox({
   };
 
   return (
-    <div className="w-full h-16 fixed bottom-0 left-0 bg-[#0B132B]/95 backdrop-blur
-                    border-t border-white/10 flex items-center gap-2 px-3">
-      {/* Left: text input */}
-      <input
-        className="flex-1 h-10 rounded-xl bg-white text-black px-3 outline-none"
-        placeholder="Type your Career here."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={onTextKeyDown}
-        aria-label="message"
-      />
+    <div className="w-full h-20 flex fixed bg-[#1B4332] bottom-0 left-0 flex-col">
+      <div className="w-full h-full backdrop-blur
+                      border-t border-white/10 flex items-center gap-2 px-3">
+        {/* Left: text input */}
+        <input
+          className="flex-1 h-10 rounded-xl bg-white text-black px-3 outline-none"
+          placeholder="Type your Career here."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={onTextKeyDown}
+          aria-label="message"
+        />
+        {/* <p>Temp can make mistakes. Check important info.</p> */}
 
-      {/* Right: dropdown */}
-      <select
-        className="h-10 min-w-[25rem] rounded-xl bg-white text-black px-3 outline-none"
-        value={choice}
-        onChange={(e) => setChoice(e.target.value)}
-        onKeyDown={onSelectKeyDown}
-        aria-label="metric"
-      >
-        <option value="">{optionPlaceholder}</option>
-        {options.map((opt) => (
-          <option key={opt.label} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+        {/* Right: dropdown */}
+        <select
+          className="h-10 min-w-[25rem] rounded-xl bg-white text-black px-3 outline-none"
+          value={choice}
+          onChange={(e) => setChoice(e.target.value)}
+          onKeyDown={onSelectKeyDown}
+          aria-label="metric"
+        >
+          <option value="">{optionPlaceholder}</option>
+          {options.map((opt) => (
+            <option key={opt.label} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
 
-      <button
-        onClick={submit}
-        className="h-10 px-4 rounded-xl bg-[#2D6A4F] text-white font-medium disabled:opacity-50"
-        disabled={!isValid}
-        aria-label="Send message"
-      >
-        Send
-      </button>
+        <button
+          onClick={submit}
+          className="h-10 px-4 rounded-xl bg-[#40916C] text-white font-medium disabled:opacity-50"
+          disabled={!isValid}
+          aria-label="Send message"
+        >
+          Send
+        </button>
+      </div>
+      <p className="flex items-center justify-center">Temp can make mistakes. Check important info.</p>
     </div>
   );
 }

@@ -5,9 +5,9 @@ export const Header = () => {
   return (
     <Box 
         component="header"
-        className="w-full h-[60px] flex items-center justify-center bg-[#2D6A4F] shadow-sm text-lg font-semibold text-white"
+        className="w-full h-[4rem] flex items-center justify-center bg-[#2D6A4F] shadow-sm text-4xl font-semibold text-white"
     > 
-        Temp - CornShield AI
+        Temp
     </ Box>
   )
 }
